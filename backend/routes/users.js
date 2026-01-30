@@ -25,11 +25,36 @@ router.post("/", (req, res) => {
   }
 });
 
+router.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  const user = users.find((u) => {
+    return u.email === email;
+  });
+
+  if (!user) {
+    return res.status(401).json("No user with that email exists");
+  }
+
+  if (user.password !== password) {
+    return res.status(401).json("Password is incorrect");
+  }
+
+  delete user.password;
+  return res.json({
+    message: "Login successful",
+    user: user,
+  });
+});
+
+router.post("/logout", (req, res) => {
+  return res.json("Logout successful");
+});
+
 router.get("/", (req, res) => {
   res.json(users);
 });
 
-//get dane uzytkownika -> logowanie?
+//get dane uzytkownika
 router.get("/:id", (req, res) => {
   const id = req.params.id; // id nie przychodzi z posta (body) -> pochoddzi z params (dane z url)
 
