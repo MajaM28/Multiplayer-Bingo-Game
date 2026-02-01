@@ -36,7 +36,7 @@ export default function LoginPage() {
         if (response.ok) {
           localStorage.setItem("user", JSON.stringify(data.user));
           console.log("Logged in user:", data.user);
-          // navigate do gier
+          navigate("/lobby");
         } else {
           setError(data);
         }

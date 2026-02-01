@@ -70,3 +70,10 @@ body {
   margin-left: 1rem;
   transform: translateY(-0.3rem);
 }
+.gameListContainer {
+  display: flex;
+  flex-direction: column;
+}
+.gamecardContainer {
+  background-color: #93abd9;
+}
