@@ -149,4 +149,47 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// losowanie liczb do gry
+router.post("/:id/draw", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const game = await dbGet("SELECT * FROM games WHERE id = ?", [id]);
+
+    if (!game) {
+      return res.status(404).json("No such game found!");
+    }
+
+    const drawnNumbers = game.drawnNumbers ? JSON.parse(game.drawnNumbers) : [];
+
+    if (drawnNumbers.length >= 75) {
+      return res.status(400).json("All numbers already drawn!");
+    }
+
+    let newNum;
+    let isUnique = false;
+
+    while (!isUnique) {
+      newNum = Math.floor(Math.random() * 75) + 1;
+      if (!drawnNumbers.includes(newNum)) {
+        isUnique = true;
+      }
+    }
+
+    drawnNumbers.push(newNum);
+
+    await dbRun("UPDATE games SET drawnNumbers = ? WHERE id = ?", [
+      JSON.stringify(drawnNumbers),
+      id,
+    ]);
+
+    return res.status(200).json({
+      number: newNum,
+      allDrawn: drawnNumbers,
+    });
+  } catch (err) {
+    console.error("Error with drawinf number:", err);
+    return res.status(500).json("Server error");
+  }
+});
+
 module.exports = router;

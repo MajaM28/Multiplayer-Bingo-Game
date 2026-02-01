@@ -58,6 +58,7 @@ body {
   border-radius: 5rem;
   margin-left: 1rem;
   font-family: "Chewy";
+  font-size: 2rem;
 }
 
 .formOneButton:active {

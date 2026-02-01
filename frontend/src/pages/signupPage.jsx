@@ -104,7 +104,7 @@ export default function SignupPage() {
         or
         <button
           onClick={() => navigate("/login")}
-          className="link-button"
+          className="formOneButton"
           type="button"
         >
           LOG IN
