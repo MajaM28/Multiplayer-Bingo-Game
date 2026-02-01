@@ -3,15 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as Yup from "yup";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
+      username: "",
       email: "",
       password: "",
     },
     validationSchema: Yup.object({
+      username: Yup.string().required("Username is required"),
       email: Yup.string()
         .trim()
         .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format") //before @ cantbe space or @,, @ , smothing after @ same rules, . , com/pl/whatever
@@ -22,26 +24,32 @@ export default function LoginPage() {
     }),
     onSubmit: async (values) => {
       setError("");
+      console.log("🚀 Starting signup..."); // ✅ DODAJ
+      console.log("📤 Sending to:", "http://localhost:3000/api/users"); // ✅ DODAJ
+      console.log("📦 Values:", values); // ✅ DODAJ
       try {
-        const response = await fetch("http://localhost:3000/api/users/login", {
+        const response = await fetch("http://localhost:3000/api/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(values),
         });
+        console.log("📥 Response status:", response.status); // ✅ DODAJ
+        console.log("📥 Response ok:", response.ok); // ✅ DODAJ
 
         const data = await response.json();
-
+        console.log("📥 Response data:", data);
         if (response.ok) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-          console.log("Logged in user:", data.user);
-          // navigate do gier
+          console.log("✅ Success! Navigating to login...");
+          navigate("/login");
         } else {
+          console.log("❌ Error from server:", data);
           setError(data);
         }
       } catch (err) {
-        console.error("Login error:", err);
+        console.error("💥 Registration error:", err);
+        console.error("Registration error:", err);
         setError("Server error. Please try again.");
       }
     },
@@ -58,6 +66,17 @@ export default function LoginPage() {
       </div>
       <div className="loginFormContainer">
         <form className="loginForm" onSubmit={formik.handleSubmit}>
+          <input
+            name="username"
+            type="text"
+            placeholder="Username"
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+          />
+          {formik.touched.username && formik.errors.username && (
+            <div className="formOneError">{formik.errors.username}</div>
+          )}
           <input
             name="email"
             type="email"
@@ -86,18 +105,18 @@ export default function LoginPage() {
             type="submit"
             disabled={formik.isSubmitting}
           >
-            {formik.isSubmitting ? "Logging in..." : "Log In"}
+            {formik.isSubmitting ? "Signing up..." : "Sign up"}
           </button>
         </form>
       </div>
       <div className="reroute">
         or
         <button
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/login")}
           className="link-button"
           type="button"
         >
-          SIGN UP
+          LOG IN
         </button>
       </div>
     </div>
