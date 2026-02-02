@@ -14,6 +14,7 @@ body {
 }
 
 .loginContainer {
+  margin-top: 8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -85,10 +86,22 @@ body {
 .gameListContainer {
   display: flex;
   flex-direction: column;
+  max-width: 60rem;
+  margin: 2rem;
+  gap: 4rem;
+  overflow: scroll;
+  max-height: 38rem;
+  border: #e7bef8 1rem dotted;
+  padding: 1rem 1rem 0rem 1rem;
 }
 .gamecardContainer {
-  margin-top: 5rem;
+  color: #fffeec;
   background-color: #93abd9;
+  padding: 2rem;
+  border-radius: 5rem;
+  font-family: "Chewy";
+  display: flex;
+  justify-content: space-between;
 }
 
 .navbarContainer {
@@ -107,6 +120,19 @@ body {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
+}
+.gameCardButton {
+  background-color: #f2619c;
+  border: 0;
+  padding: 2rem;
+  border-radius: 3rem;
+  font-family: "Chewy";
+  color: #fffeec;
+  font-size: 1rem;
+}
+.gameInfo {
+  padding: 1rem;
+  font-size: 1.5rem;
 }
 
 .gameHeader {
@@ -147,4 +173,14 @@ body {
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s ease;
+}
+
+.logoutButton {
+  background-color: #fffeec;
+  border: 0;
+  padding: 1rem;
+  border-radius: 3rem;
+  font-family: "Chewy";
+  color: #f2619c;
+  font-size: 1rem;
 }
