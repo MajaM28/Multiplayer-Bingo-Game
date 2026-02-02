@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import io from "socket.io-client";
 
 export default function GamePage() {
   const { gameId } = useParams();
@@ -9,6 +10,21 @@ export default function GamePage() {
   const [drawnNumbers, setDrawnNumbers] = useState(null);
   const [markedPositions, setMarkedPositions] = useState([[2, 2]]);
   const [isWinner, setIsWinner] = useState(false);
+
+  useEffect(() => {
+    const socket = io("http://localhost:3000"); //łaczenie sie z serwerm
+
+    socket.emit("join-game", gameId); //dołaczenie do gry
+
+    socket.on("number-drawn", (data) => {
+      console.log("New number drawn:", data.number); // listening na nowe numery
+      setDrawnNumbers(data.allDrawn);
+    });
+
+    return () => {
+      socket.disconnect(); //disconnect jak sie wychodzi
+    };
+  }, [gameId]);
 
   useEffect(() => {
     const fetchGameData = async () => {

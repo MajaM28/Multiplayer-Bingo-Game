@@ -182,6 +182,12 @@ router.post("/:id/draw", async (req, res) => {
       id,
     ]);
 
+    const io = req.app.get("io");
+    io.to(`game-${id}`).emit("number-drawn", {
+      number: newNum,
+      allDrawn: drawnNumbers,
+    });
+
     return res.status(200).json({
       number: newNum,
       allDrawn: drawnNumbers,

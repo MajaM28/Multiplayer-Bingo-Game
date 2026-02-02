@@ -1,6 +1,16 @@
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
 
 const PORT = 3000;
 
@@ -19,16 +29,21 @@ app.use("/api/cards", cardRoutes);
 const winnerRoutes = require("./routes/winners");
 app.use("/api/winners", winnerRoutes);
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", message: "Server is running" });
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join-game", (gameId) => {
+    socket.join(`game-${gameId}`);
+    console.log(`User ${socket.id} joined game ${gameId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
 });
 
-app.listen(PORT, () => {
+app.set("io", io);
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-/*
-TO DO 
-- dodaj roundNumber info do games
-
-*/
