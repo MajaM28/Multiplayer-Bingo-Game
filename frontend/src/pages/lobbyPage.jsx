@@ -3,6 +3,7 @@ import GameCard from "../components/gameCard";
 import { useEffect } from "react";
 import Navbar from "../components/navbar";
 import { useNavigate } from "react-router-dom";
+import io from "socket.io-client";
 
 export default function LobbyPage() {
   const navigate = useNavigate();
@@ -24,6 +25,21 @@ export default function LobbyPage() {
 
   useEffect(() => {
     getGames();
+    const socket = io("http://localhost:3000");
+
+    socket.on("gameCreated", (newGame) => {
+      console.log("New game created:", newGame);
+      setGames((prev) => [...prev, newGame]);
+    });
+
+    socket.on("gameDeleted", (gameId) => {
+      console.log("Game deleted:", gameId);
+      setGames((prev) => prev.filter((g) => g.id !== gameId));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (

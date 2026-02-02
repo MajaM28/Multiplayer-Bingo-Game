@@ -31,6 +31,7 @@ router.post("/", async (req, res) => {
         newGame.createdAt,
       ],
     );
+    req.app.get("io").emit("gameCreated", newGame);
     return res.status(201).json(newGame);
   } catch (err) {
     console.error("Game error:", err);
@@ -142,6 +143,7 @@ router.delete("/:id", async (req, res) => {
     }
 
     await dbRun("DELETE FROM games WHERE id = ?", [id]);
+    req.app.get("io").emit("gameDeleted", id);
     return res.status(200).json("Game deleted");
   } catch (err) {
     console.error("Delete game error:", err);
@@ -195,6 +197,39 @@ router.post("/:id/draw", async (req, res) => {
   } catch (err) {
     console.error("Error with drawinf number:", err);
     return res.status(500).json("Server error");
+  }
+});
+
+router.post("/:id/start", async (req, res) => {
+  try {
+    const gameId = req.params.id;
+
+    const game = await dbGet("SELECT * FROM games WHERE id = ?", [gameId]);
+
+    if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    if (game.status !== "waiting") {
+      return res.status(400).json({ error: "Game already going" });
+    }
+
+    await dbRun("UPDATE games SET status = ? WHERE id = ?", [
+      "in_progress",
+      gameId,
+    ]);
+    req.app
+      .get("io")
+      .emit(`gameStarted:${gameId}`, { gameId, status: "in_progress" });
+
+    res.json({
+      message: "Game started successfully",
+      gameId,
+      status: "in_progress",
+    });
+  } catch (err) {
+    console.error("Error starting game:", err);
+    res.status(500).json({ error: "Failed to start game" });
   }
 });
 

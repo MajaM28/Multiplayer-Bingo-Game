@@ -10,6 +10,8 @@ export default function GamePage() {
   const [drawnNumbers, setDrawnNumbers] = useState(null);
   const [markedPositions, setMarkedPositions] = useState([[2, 2]]);
   const [isWinner, setIsWinner] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [latestNumber, setLatestNumber] = useState(null);
 
   useEffect(() => {
     const socket = io("http://localhost:3000"); //łaczenie sie z serwerm
@@ -19,6 +21,13 @@ export default function GamePage() {
     socket.on("number-drawn", (data) => {
       console.log("New number drawn:", data.number); // listening na nowe numery
       setDrawnNumbers(data.allDrawn);
+      setLatestNumber(data.number);
+      setTimeout(() => setLatestNumber(null), 3000);
+    });
+
+    socket.on(`gameStarted:${gameId}`, (data) => {
+      console.log("Game started!", data);
+      setGame((prev) => ({ ...prev, status: "in_progress" }));
     });
 
     return () => {
@@ -27,6 +36,8 @@ export default function GamePage() {
   }, [gameId]);
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    setCurrentUser(user);
     const fetchGameData = async () => {
       const res = await fetch(`http://localhost:3000/api/games/${gameId}`, {
         method: "GET",
@@ -61,7 +72,7 @@ export default function GamePage() {
   }, [gameId]);
 
   useEffect(() => {
-    if (!gameId) return;
+    if (!gameId || game?.status !== "in_progress" || !isHost) return;
     const interval = setInterval(() => {
       const postNumber = async () => {
         const res = await fetch(
@@ -80,7 +91,41 @@ export default function GamePage() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [gameId]);
+  }, [gameId, game?.status]);
+
+  const handleStartGame = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:3000/api/games/${gameId}/start`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        setGame((prev) => ({ ...prev, status: "in_progress" }));
+      } else {
+        const error = await res.json();
+        alert(error.error);
+      }
+    } catch (error) {
+      console.error("Failed to start game:", error);
+    }
+  };
+
+  let isHost = false;
+  if (currentUser?.id === game?.hostId) {
+    isHost = true;
+  }
+
+  let canStartGame = false;
+  if (isHost && game?.status === "waiting") {
+    canStartGame = true;
+  }
 
   function bgColor(num, row, col) {
     if (num === "FREE SPACE") {
@@ -225,6 +270,9 @@ export default function GamePage() {
         <div className="div">
           <div className="gameHeader">
             <h1>{game.name}</h1>
+            {canStartGame && (
+              <button onClick={handleStartGame}>Start game!</button>
+            )}
           </div>
           <div className="drawnNumbersContainer">
             <h3>Drawn Numbers:</h3>
