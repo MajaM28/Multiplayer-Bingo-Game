@@ -1,4 +1,17 @@
+import { useNavigate } from "react-router-dom";
+
 export default function GameCard({ game }) {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+  function handleJoin() {
+    if (!user) {
+      alert("Must be logged in to join game");
+      navigate("/login");
+    }
+
+    const fetchCard = async () => {};
+  }
+
   return (
     <div className="gamecardContainer">
       <div className="gameInfo">

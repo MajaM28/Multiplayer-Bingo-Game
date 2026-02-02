@@ -29,12 +29,32 @@ export default function LobbyPage() {
   return (
     <div className="lobbyContainer">
       <Navbar />
-      <div className="gameListContainer">
-        {games.map((g) => {
-          return <GameCard key={g.id} game={g} />;
-        })}
+      <div className="bottomLobbyWrapper">
+        <div className="leftSideLobby">
+          <div className="gameListContainer">
+            {games.map((g) => {
+              return <GameCard key={g.id} game={g} />;
+            })}
+          </div>
+        </div>
+        <div className="rightSideLobby">
+          <button
+            className="newGameButton"
+            onClick={() => navigate("/creategame")}
+          >
+            CREATE NEW GAME
+          </button>
+          <div className="instructions">
+            <h1>HOW TO PLAY BINGO</h1>
+            <ol>
+              <li>blah blah blah</li>
+              <li>blah blah blah</li>
+              <li>blah blah blah</li>
+              <li>blah blah blah</li>
+            </ol>
+          </div>
+        </div>
       </div>
-      <button onClick={() => navigate("/creategame")}>CREATE NEW GAME</button>
     </div>
   );
 }
