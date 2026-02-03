@@ -56,6 +56,13 @@ export default function GamePage() {
       }
     });
 
+    socket.on("gameDeleted", (deletedGameId) => {
+      if (String(deletedGameId) === String(gameId)) {
+        alert("Game has been ended by host!");
+        navigate("/lobby");
+      }
+    });
+
     return () => {
       socket.disconnect(); //disconnect jak sie wychodzi
     };
@@ -306,7 +313,6 @@ export default function GamePage() {
       });
 
       if (res.ok) {
-        alert("Game deleted!");
         navigate("/lobby");
       } else {
         alert("Failed to delete game");
