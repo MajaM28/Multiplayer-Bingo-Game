@@ -4,6 +4,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const mqtt = require("mqtt");
 const cookieParser = require("cookie-parser");
+const { dbAll } = require("./database/db");
 
 const app = express();
 const server = http.createServer(app);
@@ -56,6 +57,23 @@ io.on("connection", (socket) => {
   });
 });
 
+async function publishStats() {
+  try {
+    const games = await dbAll("SELECT * FROM games");
+
+    const stats = {
+      total: games.length,
+      active: games.filter((g) => g.status === "in_progress").length,
+      waiting: games.filter((g) => g.status === "waiting").length,
+      finished: games.filter((g) => g.status === "finished").length,
+    };
+
+    mqttClient.publish("bingo/stats/games", JSON.stringify(stats));
+  } catch (err) {
+    console.error("Error publishing stats:", err);
+  }
+}
+
 mqttClient.on("connect", () => {
   console.log("Connected to broker");
 
@@ -66,16 +84,34 @@ mqttClient.on("connect", () => {
       console.log("Subbed to game chats");
     }
   });
+
+  mqttClient.subscribe("bingo/stats/games", (err) => {
+    console.log("stats ok");
+    if (!err) {
+      console.log("subbed to stats");
+    }
+  });
+  publishStats();
 });
 
 mqttClient.on("message", (topic, message) => {
-  const linkParts = topic.split("/");
-  const gameId = linkParts[2];
+  if (topic.startsWith("bingo/game/") && topic.endsWith("/chat")) {
+    const linkParts = topic.split("/");
+    const gameId = linkParts[2];
 
-  const chatMess = JSON.parse(message.toString());
+    const chatMess = JSON.parse(message.toString());
 
-  io.to(`game-${gameId}`).emit("chatMessage", chatMess);
+    io.to(`game-${gameId}`).emit("chatMessage", chatMess);
+  }
+
+  if (topic === "bingo/stats/games") {
+    const stats = JSON.parse(message.toString());
+    io.emit("gameStats", stats);
+  }
 });
+
+// to publisher do statsow
+setInterval(publishStats, 5000);
 
 app.set("io", io);
 app.set("mqtt", mqttClient);

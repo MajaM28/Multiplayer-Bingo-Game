@@ -9,6 +9,7 @@ export default function LobbyPage() {
   const navigate = useNavigate();
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
 
   async function getGames() {
     try {
@@ -52,6 +53,10 @@ export default function LobbyPage() {
       );
     });
 
+    socket.on("gameStats", (data) => {
+      setStats(data);
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -75,15 +80,14 @@ export default function LobbyPage() {
           >
             CREATE NEW GAME
           </button>
-          <div className="instructions">
-            <h1>HOW TO PLAY BINGO</h1>
-            <ol>
-              <li>blah blah blah</li>
-              <li>blah blah blah</li>
-              <li>blah blah blah</li>
-              <li>blah blah blah</li>
-            </ol>
-          </div>
+          {stats && (
+            <div className="instructions">
+              <h1>STATS (LIVE)</h1>
+              <p>Total Games: {stats.total}</p>
+              <p>Active: {stats.active}</p>
+              <p>Waiting: {stats.waiting}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
