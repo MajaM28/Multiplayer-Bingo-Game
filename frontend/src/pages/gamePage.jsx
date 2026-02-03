@@ -85,6 +85,7 @@ export default function GamePage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
       const gameData = await res.json();
 
@@ -103,6 +104,7 @@ export default function GamePage() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         },
       );
       const cardData = await res.json();
@@ -118,6 +120,7 @@ export default function GamePage() {
       const postNumber = async () => {
         const resGame = await fetch(
           `http://localhost:3000/api/games/${gameId}`,
+          { credentials: "include" },
         );
         const currentGame = await resGame.json();
         if (currentGame.status !== "in_progress") {
@@ -132,6 +135,7 @@ export default function GamePage() {
             headers: {
               "Content-Type": "application/json",
             },
+            credentials: "include",
           },
         );
         const data = await res.json(); // np data = { number: 42, allDrawn: [5, 12, 42] }
@@ -152,6 +156,7 @@ export default function GamePage() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         },
       );
 
@@ -290,6 +295,7 @@ export default function GamePage() {
       await fetch("http://localhost:3000/api/winners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           gameId: parseInt(gameId),
           winnerId: user.id,
@@ -299,6 +305,7 @@ export default function GamePage() {
       const gameRes = await fetch(`http://localhost:3000/api/games/${gameId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           status: "finished",
         }),
@@ -318,6 +325,7 @@ export default function GamePage() {
     try {
       const res = await fetch(`http://localhost:3000/api/games/${gameId}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -341,6 +349,7 @@ export default function GamePage() {
       await fetch(`http://localhost:3000/api/chats/${gameId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           username: user.username,
           message: text,

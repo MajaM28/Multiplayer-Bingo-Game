@@ -19,6 +19,7 @@ export default function GameCard({ game }) {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         },
       );
       const cardData = await res.json();
@@ -32,6 +33,7 @@ export default function GameCard({ game }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           gameId: gameId,
           userId: user.id,

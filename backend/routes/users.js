@@ -22,6 +22,7 @@ router.post("/", async (req, res) => {
       password: hashedPassword,
       createdAt: Date.now(),
     };
+
     await dbRun(
       "INSERT INTO users (id, username, email, password, createdAt) VALUES (?, ?, ?, ?, ?)",
       [
@@ -32,6 +33,11 @@ router.post("/", async (req, res) => {
         newUser.createdAt,
       ],
     );
+
+    res.cookie("sessionId", newUser.id, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     delete newUser.password;
     return res.status(201).json(newUser);
@@ -62,6 +68,12 @@ router.post("/login", async (req, res) => {
       email: user.email,
       createdAt: user.createdAt,
     };
+
+    res.cookie("sessionId", user.id, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     return res.json({
       message: "Login successful",
       user: userResponse,
@@ -73,6 +85,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
+  res.clearCookie("sessionId");
   return res.json("Logout successful");
 });
 
@@ -81,7 +94,6 @@ router.get("/", async (req, res) => {
     const allUsers = await dbAll(
       "SELECT id, username, email, createdAt FROM users",
     );
-
     return res.json(allUsers);
   } catch (err) {
     console.error("Get all users error:", err);
@@ -119,9 +131,15 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json("No such user found");
     }
     const { username, password } = req.body;
+
+    let finalPassword = exists.password;
+    if (password) {
+      finalPassword = await bcrypt.hash(password, 10);
+    }
+
     await dbRun("UPDATE users SET username = ?, password = ? WHERE id = ?", [
       username || exists.username,
-      password || exists.password,
+      finalPassword,
       id,
     ]); //updatujemy dane , jak nie zosatły podane to są undefined wiec zosatja te co byly oryginalnie (w exists), nic to nie zwraca (bo to run)
     const updated = await dbGet(

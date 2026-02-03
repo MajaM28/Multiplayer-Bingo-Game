@@ -26,6 +26,7 @@ export default function CreateGamePage() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({
             name: values.gameName,
             hostId: user.id,
@@ -43,6 +44,7 @@ export default function CreateGamePage() {
         await fetch("http://localhost:3000/api/cards", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             gameId: newGame.id,
             userId: user.id,

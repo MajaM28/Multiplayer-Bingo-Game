@@ -3,6 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const mqtt = require("mqtt");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const server = http.createServer(app);
@@ -18,8 +19,14 @@ const mqttClient = mqtt.connect("mqtt://localhost:1883");
 
 const PORT = 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // poniewaz blokowal ciasteczka
+    credentials: true,
+  }),
+);
 app.use(express.json());
+app.use(cookieParser());
 
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);

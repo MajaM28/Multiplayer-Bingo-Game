@@ -13,7 +13,9 @@ export default function LobbyPage() {
   async function getGames() {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/games");
+      const res = await fetch("http://localhost:3000/api/games", {
+        credentials: "include",
+      });
       const data = await res.json();
       setGames(data);
     } catch (err) {
