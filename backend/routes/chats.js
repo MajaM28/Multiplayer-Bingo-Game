@@ -23,7 +23,7 @@ router.post("/:gameId", async (req, res) => {
       JSON.stringify(chatMessage),
     );
 
-    res.status(200);
+    res.status(200).json(chatMessage);
   } catch (err) {
     console.error("Chat error:", err);
     res.status(500).json({ error: "Failed to send message" });

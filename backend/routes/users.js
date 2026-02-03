@@ -119,7 +119,7 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json("No such user found");
     }
     const { username, password } = req.body;
-    await dbRun("UPDATE users SET username = ?, email = ? WHERE id = ?", [
+    await dbRun("UPDATE users SET username = ?, password = ? WHERE id = ?", [
       username || exists.username,
       password || exists.password,
       id,

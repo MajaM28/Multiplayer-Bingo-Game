@@ -90,7 +90,7 @@ body {
   gap: 4rem;
   overflow: scroll;
   max-height: 42rem;
-  border: #e7bef8 1rem dotted;
+  border: #e7bef8 0.4rem dashed;
   padding: 1rem 1rem 0rem 1rem;
 }
 .gamecardContainer {
@@ -120,6 +120,46 @@ body {
   max-width: 800px;
   margin: 0 auto;
 }
+
+.bottomPage {
+  display: flex;
+  justify-content: space-around;
+}
+.chatContainer {
+  background-color: #93abd9;
+  padding: 0.55rem 0.5rem 0 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: column;
+  border-radius: 1rem;
+}
+.messagesContainer {
+  height: 25rem;
+  border: 0.2rem #e0729e dashed;
+  overflow: scroll;
+  padding: 0.5rem;
+}
+
+.gameContainer {
+  font-family: "Chewy";
+
+  h1 {
+    font-size: 3.5rem;
+    color: #f2619c;
+  }
+
+  button {
+    font-family: "Chewy";
+    background-color: #f2619c;
+    border: 0;
+    padding: 0.5rem;
+    border-radius: 3rem;
+    color: #fffeec;
+    font-size: 1rem;
+    margin: 0.5rem;
+  }
+}
+
 .gameCardButton {
   background-color: #f2619c;
   border: 0;
@@ -140,6 +180,9 @@ body {
 
 .drawnNumbersContainer {
   margin-bottom: 30px;
+  background-color: #93abd9;
+  border-radius: 1rem;
+  padding: 0.5rem;
 }
 
 .drawnNumbersList {

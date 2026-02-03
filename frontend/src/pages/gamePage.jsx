@@ -355,7 +355,6 @@ export default function GamePage() {
 
   return (
     <div className="gameContainer">
-      {}
       {!game || !card ? (
         <div>Loading...</div>
       ) : (
@@ -406,7 +405,7 @@ export default function GamePage() {
                   return (
                     <div key={idx} className="messageBox">
                       <div>
-                        <span className="chatMessageUser">{m.username}:</span>
+                        <span className="chatMessageUser">{m.username}: </span>
                         <span className="chatMessageTxt">{m.message}</span>
                       </div>
                     </div>
