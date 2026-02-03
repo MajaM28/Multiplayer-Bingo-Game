@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router(); // express router -> mini aplikacja do grupowania endpointów
 const { dbRun, dbGet, dbAll } = require("../database/db");
+const bcrypt = require("bcrypt");
 
 //rejestracja -> tworzenie nowego usera
 router.post("/", async (req, res) => {
@@ -11,11 +12,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json("User with that email already exists");
     }
 
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds); //freecodecamp tak mowi
+
     const newUser = {
       id: Date.now().toString(),
       username: username,
       email: email,
-      password: password, //temporary!
+      password: hashedPassword,
       createdAt: Date.now(),
     };
     await dbRun(
@@ -46,7 +50,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json("No user with that email exists");
     }
 
-    if (user.password !== password) {
+    const isCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isCorrect) {
       return res.status(401).json("Password is incorrect");
     }
 

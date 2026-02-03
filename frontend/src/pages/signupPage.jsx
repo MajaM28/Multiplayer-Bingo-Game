@@ -101,13 +101,12 @@ export default function SignupPage() {
         </form>
       </div>
       <div className="reroute">
-        or
         <button
           onClick={() => navigate("/login")}
           className="formOneButton"
           type="button"
         >
-          LOG IN
+          Log in
         </button>
       </div>
     </div>
