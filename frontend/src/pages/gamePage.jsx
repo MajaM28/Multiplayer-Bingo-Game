@@ -329,9 +329,7 @@ export default function GamePage() {
             {canStartGame && (
               <button onClick={handleStartGame}>Start game!</button>
             )}
-            {isHost && game?.status === "finished" && (
-              <button onClick={handleClose}>Close Game</button>
-            )}
+            {isHost && <button onClick={handleClose}>Close Game</button>}
           </div>
           <div className="drawnNumbersContainer">
             <h3>Drawn Numbers:</h3>

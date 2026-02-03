@@ -146,7 +146,9 @@ router.delete("/:id", async (req, res) => {
     }
 
     await dbRun("DELETE FROM games WHERE id = ?", [id]);
+
     req.app.get("io").emit("gameDeleted", id);
+
     return res.status(200).json("Game deleted");
   } catch (err) {
     console.error("Delete game error:", err);
@@ -221,9 +223,21 @@ router.post("/:id/start", async (req, res) => {
       "in_progress",
       gameId,
     ]);
+
+    const updatedGame = await dbGet("SELECT * FROM games WHERE id = ?", [
+      gameId,
+    ]);
+    const reworked = {
+      ...updatedGame,
+      players: JSON.parse(updatedGame.players),
+      drawnNumbers: JSON.parse(updatedGame.drawnNumbers),
+    };
+
     req.app
       .get("io")
       .emit(`gameStarted:${gameId}`, { gameId, status: "in_progress" });
+
+    req.app.get("io").emit("gameUpdated", reworked);
 
     res.json({
       message: "Game started successfully",

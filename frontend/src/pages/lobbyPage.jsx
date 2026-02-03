@@ -37,6 +37,19 @@ export default function LobbyPage() {
       setGames((prev) => prev.filter((g) => g.id !== gameId));
     });
 
+    socket.on("gameUpdated", (updatedGame) => {
+      console.log("Game updated:", updatedGame);
+      setGames((prev) =>
+        prev.map((g) => {
+          if (String(g.id) === String(updatedGame.id)) {
+            return updatedGame;
+          } else {
+            return g;
+          }
+        }),
+      );
+    });
+
     return () => {
       socket.disconnect();
     };
