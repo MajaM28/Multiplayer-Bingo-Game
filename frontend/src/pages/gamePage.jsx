@@ -13,6 +13,8 @@ export default function GamePage() {
   const [isWinner, setIsWinner] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [latestNumber, setLatestNumber] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
 
   let isHost = false;
   if (currentUser?.id === game?.hostId) {
@@ -24,6 +26,7 @@ export default function GamePage() {
     canStartGame = true;
   }
 
+  // USE EFFECT DO WEB SOCKETU
   useEffect(() => {
     const socket = io("http://localhost:3000"); //łaczenie sie z serwerm
 
@@ -37,13 +40,13 @@ export default function GamePage() {
     });
 
     socket.on(`gameStarted:${gameId}`, (data) => {
-      console.log("Game started!", data);
+      console.log("Game start", data);
       setGame((prev) => ({ ...prev, status: "in_progress" }));
     });
 
     socket.on("gameUpdated", (updatedGame) => {
       if (updatedGame.id === gameId) {
-        console.log("Game updated!", updatedGame);
+        console.log("Game update", updatedGame);
         setGame(updatedGame);
       }
     });
@@ -61,6 +64,11 @@ export default function GamePage() {
         alert("Game has been ended by host!");
         navigate("/lobby");
       }
+    });
+
+    socket.on("chatMessage", (chatMess) => {
+      console.log("sent message ok");
+      setChatMessages((prev) => [...prev, chatMess]);
     });
 
     return () => {
@@ -323,6 +331,28 @@ export default function GamePage() {
     }
   };
 
+  const handleSendMess = async () => {
+    const text = chatInput.trim();
+    if (!text) return; // zeby nie wysylac pustych waidomosci
+    setChatInput("");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    try {
+      await fetch(`http://localhost:3000/api/chats/${gameId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: user.username,
+          message: text,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to send chat:", err);
+    } finally {
+      setChatInput(""); // zeby czat sie czyscil po wysłaniu
+    }
+  };
+
   return (
     <div className="gameContainer">
       {}
@@ -349,24 +379,59 @@ export default function GamePage() {
               )}
             </div>
           </div>
-
-          <div className="cardContainer">
-            <h3>Your Card:</h3>
-            <div className="bingoGrid">
-              {card.numbers.flat().map((num, index) => {
-                const row = Math.floor(index / 5);
-                const col = index % 5;
-                return (
-                  <div
-                    key={index}
-                    className={`bingoCell`}
-                    onClick={() => handleNumClick(num, row, col)}
-                    style={{ backgroundColor: bgColor(num, row, col) }}
-                  >
-                    {num === "FREE SPACE" ? "☆" : num}
-                  </div>
-                );
-              })}
+          <div className="bottomPage">
+            <div className="cardContainer">
+              <h3>Your Card:</h3>
+              <div className="bingoGrid">
+                {card.numbers.flat().map((num, index) => {
+                  const row = Math.floor(index / 5);
+                  const col = index % 5;
+                  return (
+                    <div
+                      key={index}
+                      className={`bingoCell`}
+                      onClick={() => handleNumClick(num, row, col)}
+                      style={{ backgroundColor: bgColor(num, row, col) }}
+                    >
+                      {num === "FREE SPACE" ? "☆" : num}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="chatContainer">
+              <h3>GAME CHAT</h3>
+              <div className="messagesContainer">
+                {chatMessages.map((m, idx) => {
+                  return (
+                    <div key={idx} className="messageBox">
+                      <div>
+                        <span className="chatMessageUser">{m.username}:</span>
+                        <span className="chatMessageTxt">{m.message}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="inputAndSend">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSendMess();
+                  }}
+                  placeholder="Type a message..."
+                  className="chatInput"
+                />
+                <button
+                  onClick={handleSendMess}
+                  className="chatSendButton"
+                  disabled={!chatInput.trim()}
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </div>
         </div>
