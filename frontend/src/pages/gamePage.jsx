@@ -374,6 +374,7 @@ export default function GamePage() {
               <button onClick={handleStartGame}>Start game!</button>
             )}
             {isHost && <button onClick={handleClose}>Close Game</button>}
+            <button onClick={() => navigate("/lobby")}>Exit</button>
           </div>
           <div className="drawnNumbersContainer">
             <h3>Drawn Numbers:</h3>

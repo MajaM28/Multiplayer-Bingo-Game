@@ -84,7 +84,11 @@ export default function CreateGamePage() {
         >
           Create Game!
         </button>
-        <button type="button" onClick={() => navigate("/lobby")}>
+        <button
+          className="formOneButton"
+          type="button"
+          onClick={() => navigate("/lobby")}
+        >
           Cancel
         </button>
       </form>
