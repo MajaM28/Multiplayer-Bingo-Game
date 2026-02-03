@@ -9,6 +9,7 @@ router.post("/", async (req, res) => {
   try {
     const { gameId, winnerId } = req.body;
 
+    //pobieranie danych zwyciezcy z users
     const user = await dbGet("SELECT * FROM users WHERE id = ?", [winnerId]);
 
     if (!user) {
@@ -23,6 +24,7 @@ router.post("/", async (req, res) => {
       wonAt: Date.now(),
     };
 
+    //zapis zwyciestwa do bazy
     await dbRun(
       "INSERT INTO winners (id, gameId, winnerId, winnerName, wonAt) VALUES (?, ?, ?, ?, ?)",
       [
@@ -34,6 +36,7 @@ router.post("/", async (req, res) => {
       ],
     );
 
+    // mowimy wszytskim gracza w grze o zwyciezcy
     req.app.get("io").to(`game-${gameId}`).emit("bingoWinner", {
       winnerId: winnerId,
       winner: user.username,
@@ -52,7 +55,7 @@ router.get("/", async (req, res) => {
   try {
     const { gameId, winnerId, roundNumber } = req.query;
 
-    let query = "SELECT * FROM winners WHERE 1=1";
+    let query = "SELECT * FROM winners WHERE 1=1"; // znowu trick 1=1
     const params = [];
     if (winnerId) {
       query += " AND winnerId = ?";

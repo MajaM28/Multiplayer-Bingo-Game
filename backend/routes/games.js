@@ -12,11 +12,12 @@ router.post("/", async (req, res) => {
       name,
       hostId,
       players: [],
-      status: "waiting",
-      drawnNumbers: [],
+      status: "waiting", // status gry
+      drawnNumbers: [], // te wylosowane liczby w JSON array
       createdAt: Date.now(),
     };
 
+    //zapisywanie do bazy
     await dbRun(
       "INSERT INTO games (id, name, hostId, players, status, drawnNumbers, createdAt ) VALUES (?, ?, ?, ?, ?,?,?)",
       [
@@ -29,6 +30,8 @@ router.post("/", async (req, res) => {
         newGame.createdAt,
       ],
     );
+
+    // wyslanie do wsyztkich przez web socket info o nowej grze
     req.app.get("io").emit("gameCreated", newGame);
     return res.status(201).json(newGame);
   } catch (err) {
@@ -41,6 +44,7 @@ router.get("/", async (req, res) => {
   try {
     const allGames = await dbAll("SELECT * FROM games");
 
+    //paroswanie stringow z bazy
     const reworkData = allGames.map((g) => {
       return {
         ...g,
@@ -56,11 +60,12 @@ router.get("/", async (req, res) => {
   }
 });
 
+// pozwala na wyszukiwanie gry po nazwie
 router.get("/search/:pattern", async (req, res) => {
   try {
     const pattern = req.params.pattern.toLowerCase();
     const matchedGames = await dbAll(
-      "SELECT * FROM games WHERE LOWER(name) LIKE ?",
+      "SELECT * FROM games WHERE LOWER(name) LIKE ?", // LIKE w sql - % czyli dowolny znak
       [`%${pattern}%`],
     );
 
@@ -108,6 +113,8 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json("No such game found");
     }
     const { name, status, players, drawnNumbers } = req.body;
+
+    // aktualizujemy tylko wybrane pola
     await dbRun(
       "UPDATE games SET name = ?, status = ?, players = ?, drawnNumbers = ? WHERE id = ?",
       [
@@ -125,6 +132,7 @@ router.put("/:id", async (req, res) => {
       drawnNumbers: JSON.parse(updated.drawnNumbers),
     };
 
+    // web socket informujemy, ze gra zostala zaktualizowana (np zmiana statusu)
     req.app.get("io").emit("gameUpdated", reworkUpdate);
 
     return res.status(200).json(reworkUpdate);
@@ -144,6 +152,7 @@ router.delete("/:id", async (req, res) => {
 
     await dbRun("DELETE FROM games WHERE id = ?", [id]);
 
+    // informujemy wsyztskich ze gra zostala usunieta (zmaknieta przez hosta w moim przypadku)
     req.app.get("io").emit("gameDeleted", id);
 
     return res.status(200).json("Game deleted");
@@ -165,10 +174,12 @@ router.post("/:id/draw", async (req, res) => {
 
     const drawnNumbers = game.drawnNumbers ? JSON.parse(game.drawnNumbers) : [];
 
+    // sparwdzanie czy wsyztskie liczby nie zostaly przypadkiem juz wyslowowane
     if (drawnNumbers.length >= 75) {
       return res.status(400).json("All numbers already drawn!");
     }
 
+    // losowanie nowego unikalnego numeru
     let newNum;
     let isUnique = false;
 
@@ -181,11 +192,13 @@ router.post("/:id/draw", async (req, res) => {
 
     drawnNumbers.push(newNum);
 
+    // zapisanie go do bazy -> wiadomo jako string
     await dbRun("UPDATE games SET drawnNumbers = ? WHERE id = ?", [
       JSON.stringify(drawnNumbers),
       id,
     ]);
 
+    // wysyłanie nowego numery do WSZYTSKICH graczy w grze
     const io = req.app.get("io");
     io.to(`game-${id}`).emit("number-drawn", {
       number: newNum,
@@ -212,15 +225,18 @@ router.post("/:id/start", async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
+    // tylko gry w stanie czekania moga start zrobic
     if (game.status !== "waiting") {
       return res.status(400).json({ error: "Game already going" });
     }
 
+    // aktualizacja statusu
     await dbRun("UPDATE games SET status = ? WHERE id = ?", [
       "in_progress",
       gameId,
     ]);
 
+    // pobranie zaktualizowanej
     const updatedGame = await dbGet("SELECT * FROM games WHERE id = ?", [
       gameId,
     ]);
@@ -230,10 +246,12 @@ router.post("/:id/start", async (req, res) => {
       drawnNumbers: JSON.parse(updatedGame.drawnNumbers),
     };
 
+    // powiadomienie graczy o startcie (ws)
     req.app
       .get("io")
       .emit(`gameStarted:${gameId}`, { gameId, status: "in_progress" });
 
+    // powiadomie graczy o aktualizavji (ws)
     req.app.get("io").emit("gameUpdated", reworked);
 
     res.json({

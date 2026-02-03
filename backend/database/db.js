@@ -1,12 +1,13 @@
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 
+//laczenie sie z baza sqlLite
 const db = new sqlite3.Database(path.join(__dirname, "bingo.db"), (err) => {
   if (err) {
     console.error("Database error:", err); // nie udalo sie polaczyc
   } else {
     console.log("Connected to SQLite"); // podlaczono do bazy
-    createTables();
+    createTables(); // automatycznie tworze tabele w bazie na startcie
   }
 });
 
@@ -45,7 +46,7 @@ function createTables() {
       createdAt INTEGER NOT NULL
     )
   `);
-  //tworzenie tabeli w sql dla wynikow
+  //tworzenie tabeli w sql dla zwyciezkow - historia wygranych
   db.run(`
     CREATE TABLE IF NOT EXISTS winners (
       id TEXT PRIMARY KEY,
@@ -59,7 +60,9 @@ function createTables() {
   `);
 }
 
-//owijanie w promisy zebym mogla uzyzc async await
+//owijanie w promisy zebym mogla uzyzc async await -> bo sql uzywa callbacks (dla ultawienia)
+
+//dbRun - INSERT, UPDATE, DELETE (nie zwraca danych)
 const dbRun = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (err) {
@@ -69,6 +72,7 @@ const dbRun = (sql, params = []) => {
   });
 };
 
+//dbGet - SELECT pojedynczego wiersza (zwraca obiekt lub undefined)
 const dbGet = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => {
@@ -78,6 +82,7 @@ const dbGet = (sql, params = []) => {
   });
 };
 
+//dbGet - SELECT pojedynczego wiersza (zwraca obiekt lub undefined)
 const dbAll = (sql, params = []) => {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {

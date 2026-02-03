@@ -7,11 +7,14 @@ const bcrypt = require("bcrypt");
 router.post("/", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+
+    //sprawdzanie czy przypadkiem email nie ma juz w bazie
     const exists = await dbGet("SELECT * FROM users WHERE email = ?", [email]);
     if (exists) {
       return res.status(400).json("User with that email already exists");
     }
 
+    // szyfrowanie hasla z bcryptem (10 salt rounds)
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds); //freecodecamp tak mowi
 
@@ -23,6 +26,7 @@ router.post("/", async (req, res) => {
       createdAt: Date.now(),
     };
 
+    //zapisanie do bazy
     await dbRun(
       "INSERT INTO users (id, username, email, password, createdAt) VALUES (?, ?, ?, ?, ?)",
       [
@@ -34,11 +38,13 @@ router.post("/", async (req, res) => {
       ],
     );
 
+    //ustawianie cookies do sesji
     res.cookie("sessionId", newUser.id, {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // aktulane przez 24h
     });
 
+    // guard zeby nie zwracac do frontendu hasla
     delete newUser.password;
     return res.status(201).json(newUser);
   } catch (err) {
@@ -56,12 +62,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).json("No user with that email exists");
     }
 
+    //porownywanie hasla do hasla w bazie (bcrypt.compare)
     const isCorrect = await bcrypt.compare(password, user.password);
 
     if (!isCorrect) {
       return res.status(401).json("Password is incorrect");
     }
 
+    //odp bez hasla
     const userResponse = {
       id: user.id,
       username: user.username,
@@ -69,6 +77,7 @@ router.post("/login", async (req, res) => {
       createdAt: user.createdAt,
     };
 
+    // cookie sesji
     res.cookie("sessionId", user.id, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
@@ -85,12 +94,13 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("sessionId");
+  res.clearCookie("sessionId"); // usuwanie cookie sesji
   return res.json("Logout successful");
 });
 
 router.get("/", async (req, res) => {
   try {
+    // select tylko bezpieczne do zwracania kolumny
     const allUsers = await dbAll(
       "SELECT id, username, email, createdAt FROM users",
     );
@@ -105,7 +115,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id; // id nie przychodzi z posta (body) -> pochoddzi z params (dane z url)
-
+    //safe select bez hasla
     const found = await dbGet(
       "SELECT id, username, email, createdAt FROM users WHERE id = ?", //pobieramy bez hasła, bo nie chcemy zwracac hasla do innnych
       [id],
@@ -131,7 +141,7 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json("No such user found");
     }
     const { username, password } = req.body;
-
+    // jezlei zmieniono haslo to tez hashowac
     let finalPassword = exists.password;
     if (password) {
       finalPassword = await bcrypt.hash(password, 10);
